@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { store, generate } from '@/lib/store';
+export const dynamic = 'force-dynamic';
 
 const schema = z.object({ station: z.string().optional(), taskType: z.string().optional(), range: z.enum(['未来 24 小时', '未来 72 小时']).optional(), allowCrossStation: z.boolean().optional() });
 

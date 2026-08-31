@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
 import { z } from 'zod';
 import { store } from '@/lib/store';
+export const dynamic = 'force-dynamic';
 
 const schema = z.object({ name: z.string().min(1), template: z.string().min(1), rows: z.number().int().nonnegative(), errors: z.number().int().nonnegative() });
 

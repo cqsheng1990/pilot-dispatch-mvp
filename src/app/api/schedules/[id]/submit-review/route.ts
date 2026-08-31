@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { submitReview } from '@/lib/store';
+export const dynamic = 'force-dynamic';
 
 export async function POST(_: Request, { params }: { params: { id: string } }) {
   const result = submitReview(params.id);
