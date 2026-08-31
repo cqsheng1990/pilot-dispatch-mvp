@@ -12,7 +12,6 @@
     "db:seed": "tsx prisma/seed.ts"
   },
   "prisma": { "seed": "node_modules/.bin/tsx.cmd prisma/seed.ts" },
-  "pnpm": { "onlyBuiltDependencies": ["@prisma/client", "@prisma/engines", "esbuild", "prisma"] },
   "dependencies": {
     "@prisma/client": "5.22.0",
     "date-fns": "4.1.0",
