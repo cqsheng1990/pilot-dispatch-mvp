@@ -17,10 +17,12 @@ pnpm exec tsc --noEmit
 pnpm dev
 ```
 
-默认地址为 `http://localhost:3015`；如果端口被占用，可执行：
+默认地址为 `http://localhost:3016`；同一局域网内的其他设备可尝试使用本机局域网 IP，例如 `http://10.10.7.100:3016`。
+
+如果端口被占用，可执行：
 
 ```powershell
-node_modules/.bin/next.cmd dev -p 3016
+node_modules/.bin/next.cmd dev -H 0.0.0.0 -p 3017
 ```
 
 演示账号：`dispatcher` / `pilot123`。
