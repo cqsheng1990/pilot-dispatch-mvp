@@ -1,0 +1,15 @@
+node_modules/
+.next/
+.env
+.env.local
+prisma/*.db
+prisma/*.db-shm
+prisma/*.db-wal
+prisma/**/*.db
+prisma/**/*.db-shm
+prisma/**/*.db-wal
+*.tsbuildinfo
+.playwright-cli/
+coverage/
+
+.vercel

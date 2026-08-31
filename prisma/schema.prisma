@@ -1,0 +1,262 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id        String   @id
+  name      String
+  status    String   @default("ACTIVE")
+  stations  Station[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Station {
+  id             String          @id
+  organizationId String
+  name           String
+  code           String          @unique
+  status         String          @default("ACTIVE")
+  organization   Organization    @relation(fields: [organizationId], references: [id])
+  areas          Area[]
+  pilots         Pilot[]
+  shifts         Shift[]
+  plans          Plan[]
+  ruleVersions   RuleVersion[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model Area {
+  id        String   @id
+  stationId String
+  name      String
+  kind      String
+  status    String   @default("ACTIVE")
+  station   Station  @relation(fields: [stationId], references: [id])
+  tasks     Task[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Pilot {
+  id          String          @id
+  employeeNo  String          @unique
+  name        String
+  stationId   String
+  team        String
+  status      String          @default("AVAILABLE")
+  phone       String?
+  station     Station         @relation(fields: [stationId], references: [id])
+  qualifications Qualification[]
+  assignments Assignment[]
+  shifts      Shift[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model Qualification {
+  id          String   @id
+  pilotId     String
+  level       String
+  waters      String
+  vesselTypes String
+  expiresAt   DateTime
+  limitations String?
+  pilot       Pilot    @relation(fields: [pilotId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Shift {
+  id          String   @id
+  stationId   String
+  pilotId     String?
+  name        String
+  startsAt    DateTime
+  endsAt      DateTime
+  handoverMin Int      @default(30)
+  restMin     Int      @default(480)
+  station     Station  @relation(fields: [stationId], references: [id])
+  pilot       Pilot?   @relation(fields: [pilotId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Vessel {
+  id          String   @id
+  name        String
+  imo         String?
+  vesselType  String
+  tonnage     Int
+  specialTags String?
+  tasks       Task[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Plan {
+  id          String   @id
+  planNo      String
+  version     Int      @default(1)
+  stationId   String
+  source      String
+  status      String   @default("DRAFT")
+  importedAt  DateTime @default(now())
+  owner       String
+  station     Station  @relation(fields: [stationId], references: [id])
+  tasks       Task[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@unique([planNo, version])
+}
+
+model Task {
+  id             String       @id
+  planId         String
+  vesselId       String
+  stationId      String
+  areaId         String
+  taskNo         String       @unique
+  taskType       String
+  priority       String       @default("NORMAL")
+  startsAt       DateTime
+  endsAt         DateTime
+  status         String       @default("WAITING")
+  locked         Boolean      @default(false)
+  special        Boolean      @default(false)
+  plan           Plan         @relation(fields: [planId], references: [id])
+  vessel         Vessel       @relation(fields: [vesselId], references: [id])
+  area           Area         @relation(fields: [areaId], references: [id])
+  assignments    Assignment[]
+  changes        ChangeEvent[]
+  executions     ExecutionRecord[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model ScheduleSolution {
+  id            String       @id
+  version       Int          @default(1)
+  status        String       @default("DRAFT")
+  generatedAt   DateTime     @default(now())
+  dataBatch     String
+  ruleVersion   String
+  algorithm     String
+  score         Int          @default(0)
+  assignments   Assignment[]
+  auditLogs     AuditLog[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Assignment {
+  id         String           @id
+  solutionId String
+  taskId     String
+  pilotId    String
+  source     String           @default("ENGINE")
+  reason     String?
+  score      Int              @default(0)
+  confirmed  Boolean          @default(false)
+  solution   ScheduleSolution @relation(fields: [solutionId], references: [id])
+  task       Task             @relation(fields: [taskId], references: [id])
+  pilot      Pilot            @relation(fields: [pilotId], references: [id])
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  @@unique([solutionId, taskId])
+}
+
+model ChangeEvent {
+  id          String   @id
+  taskId      String
+  type        String
+  beforeValue String
+  afterValue  String
+  status      String   @default("OPEN")
+  reason      String?
+  owner       String
+  task        Task     @relation(fields: [taskId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ExecutionRecord {
+  id        String   @id
+  taskId    String
+  checkIn   DateTime?
+  startedAt DateTime?
+  endedAt   DateTime?
+  status    String   @default("PENDING")
+  reason    String?
+  task      Task     @relation(fields: [taskId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RuleVersion {
+  id         String   @id
+  stationId  String
+  name       String
+  status     String   @default("DRAFT")
+  level      String
+  content    String
+  source     String
+  version    Int      @default(1)
+  effectiveAt DateTime?
+  station    Station  @relation(fields: [stationId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model ImportBatch {
+  id           String        @id
+  fileName     String
+  template     String
+  status       String        @default("PREVIEW")
+  rowCount     Int           @default(0)
+  successCount Int           @default(0)
+  errorCount   Int           @default(0)
+  importedBy   String
+  errors       ImportError[]
+  createdAt    DateTime      @default(now())
+}
+
+model ImportError {
+  id        String      @id
+  batchId   String
+  rowNo     Int
+  field     String
+  value     String
+  message   String
+  blocking  Boolean     @default(true)
+  batch     ImportBatch @relation(fields: [batchId], references: [id])
+}
+
+model Notification {
+  id        String   @id
+  taskId    String?
+  recipient String
+  type      String
+  status    String   @default("PENDING")
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id         String           @id
+  actor      String
+  role       String
+  action     String
+  objectType String
+  objectId   String
+  detail     String
+  solutionId String?
+  solution   ScheduleSolution? @relation(fields: [solutionId], references: [id])
+  createdAt  DateTime         @default(now())
+}
